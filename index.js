@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
@@ -120,11 +120,50 @@ async function run() {
             res.status(403).send({ accessToken: '' })
         })
 
-        // ---> users data store || Post
+        // ---> get users data
+        app.get('/users', async (req, res) => {
+            const query = {};
+            const result = await usersCollection.find(query).toArray();
+            res.send(result)
+
+        })
+
+        // --->store users data  || Post
         app.post('/users', async (req, res) => {
             const user = req.body;
             const users = await usersCollection.insertOne(user);
             res.send(users)
+        })
+
+        // ---> check isAdmin
+        app.get('/users/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const user = await usersCollection.findOne(query);
+            res.send({ isAdmin: user?.role === 'Admin' })
+        })
+
+        // ---> update user info
+        app.put('/users/admin/:id', verifyJWT, async (req, res) => {
+            const decodedEmail = req.decoded.email;
+            const query = { email: decodedEmail }
+
+            const user = await usersCollection.findOne(query);
+
+            if (user?.role !== 'Admin') {
+                return res.status(403).send('forbidden access')
+            }
+
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updateUserDoc = {
+                $set: {
+                    role: 'Admin'
+                },
+            };
+            const result = await usersCollection.updateOne(filter, updateUserDoc, options);
+            res.send(result)
         })
 
 
