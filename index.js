@@ -48,6 +48,7 @@ async function run() {
         const appointmentServicesCollection = client.db("visionHealthCenter").collection('appointmentServices');
         const bookingsCollection = client.db("visionHealthCenter").collection('bookings');
         const usersCollection = client.db("visionHealthCenter").collection('users');
+        const doctorsCollection = client.db("visionHealthCenter").collection('doctors');
 
         //-----> get services data
         app.get('/appointmentServices', async (req, res) => {
@@ -114,7 +115,7 @@ async function run() {
             const query = { email: email };
             const user = await usersCollection.findOne(query);
             if (user) {
-                const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, { expiresIn: '1h' });
+                const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, { expiresIn: '1d' });
                 return res.send({ accessToken: token })
             }
             res.status(403).send({ accessToken: '' })
@@ -163,6 +164,22 @@ async function run() {
                 },
             };
             const result = await usersCollection.updateOne(filter, updateUserDoc, options);
+            res.send(result)
+        })
+
+        // ---> appointment Specialty
+        app.get("/appointmentSpecialty", async (req, res) => {
+            const query = {};
+            const result = await appointmentServicesCollection.find(query).project({ serviceTitle: 1 }).toArray();
+            res.send(result)
+        })
+
+
+
+        // ---> doctors data collect
+        app.post('/doctors', async (req, res) => {
+            const doctor = req.body;
+            const result = await doctorsCollection.insertOne(doctor);
             res.send(result)
         })
 
