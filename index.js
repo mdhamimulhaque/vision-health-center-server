@@ -174,12 +174,27 @@ async function run() {
             res.send(result)
         })
 
+        // ---> get doctors data
+        app.get("/doctors", async (req, res) => {
+            const query = {};
+            const doctors = await doctorsCollection.find(query).toArray();
+            res.send(doctors)
+        })
+
 
 
         // ---> doctors data collect
         app.post('/doctors', async (req, res) => {
             const doctor = req.body;
             const result = await doctorsCollection.insertOne(doctor);
+            res.send(result)
+        })
+
+        // ---> remove doctor
+        app.delete('/doctors/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const result = await doctorsCollection.deleteOne(query);
             res.send(result)
         })
 
