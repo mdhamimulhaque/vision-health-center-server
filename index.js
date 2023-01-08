@@ -259,7 +259,6 @@ async function run() {
                     transactionId: payment.transactionId
                 },
             };
-            console.log(updateDoc)
             const updateResult = await bookingsCollection.updateOne(filter, updateDoc);
             res.send(result)
         })
